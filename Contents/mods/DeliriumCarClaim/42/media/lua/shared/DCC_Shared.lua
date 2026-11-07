@@ -66,6 +66,38 @@ function M.entryOf(state, vehicle)
 	return entry, uid
 end
 
+-- VehicleClaimWG kept the owner on the car itself.
+function M.oldOwnerOnCar(vehicle)
+	local data = vehicle:getModData()
+	local owner = data.WG_Claim_Owner or data.owner
+	if type(owner) ~= "string" or owner == "" then return nil end
+	return owner
+end
+
+-- What the locks and menus go by. A claim imported from VehicleClaimWG that
+-- the server has not compared with its car yet (wg) can name a stale owner -
+-- its saved list was only a copy. Until the server does (adoptOld), the car
+-- decides here the same way: no owner on it - free, otherwise its owner and
+-- the access lists of both. Read-only view, never written back.
+function M.liveEntry(state, vehicle)
+	local entry, uid = M.entryOf(state, vehicle)
+	if not entry or not entry.wg then return entry, uid end
+	local owner = M.oldOwnerOnCar(vehicle)
+	if not owner then return nil, uid end
+	local allowed = {}
+	if type(entry.allowed) == "table" then
+		for name, on in pairs(entry.allowed) do allowed[name] = on end
+	end
+	local carAllowed = vehicle:getModData().allowed
+	if type(carAllowed) == "table" then
+		for _, name in pairs(carAllowed) do
+			if type(name) == "string" and name ~= "" then allowed[name] = true end
+		end
+	end
+	return { owner = owner, by = entry.by, allowed = allowed, name = entry.name,
+		x = entry.x, y = entry.y, z = entry.z, wg = true }, uid
+end
+
 -- ---------------------------------------------------------------------------
 -- Sandbox options, read at the point of use (see E:\mods\CLAUDE.md).
 -- ---------------------------------------------------------------------------

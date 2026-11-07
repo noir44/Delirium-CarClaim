@@ -243,7 +243,7 @@ local originalFillOutside = ISVehicleMenu.FillMenuOutsideVehicle
 function ISVehicleMenu.FillMenuOutsideVehicle(playerNum, context, vehicle, test)
 	if test then return originalFillOutside(playerNum, context, vehicle, test) end
 	local player = getSpecificPlayer(playerNum)
-	local entry, uid = M.entryOf(M.getState(), vehicle)
+	local entry, uid = M.liveEntry(M.getState(), vehicle)
 	if entry and not M.canUse(entry, player) then
 		local option = context:addOption(M.whoText(entry))
 		option.notAvailable = true

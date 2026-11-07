@@ -195,9 +195,9 @@ end
 -- list are taken over. Done once per car (the wg flag goes).
 local function adoptOld(uid, entry, vehicle)
 	local data = vehicle:getModData()
-	local owner = data.WG_Claim_Owner or data.owner
+	local owner = M.oldOwnerOnCar(vehicle)
 	entry.wg = nil
-	if type(owner) ~= "string" or owner == "" then return "free in VehicleClaimWG" end
+	if not owner then return "free in VehicleClaimWG" end
 	if owner ~= entry.owner then
 		log(string.format("Import %s: owner %s -> %s (as on the car)", uid, tostring(entry.owner), owner))
 		entry.owner = owner
@@ -212,8 +212,10 @@ local function adoptOld(uid, entry, vehicle)
 end
 
 -- getCell():getVehicles() is a java.util.Set: toArray() + ipairs
--- (see claude/Delirium-Zones-Vehicles.md).
-local function scanLoaded()
+-- (see claude/Delirium-Zones-Vehicles.md). full: every claimed car (hourly:
+-- positions, wrecks); otherwise only imported claims not compared with their
+-- car yet (every minute).
+local function scanLoaded(full)
 	local cell = getCell()
 	local set = cell and cell:getVehicles()
 	if not set then return false end
@@ -221,7 +223,7 @@ local function scanLoaded()
 	local changed = false
 	for _, vehicle in ipairs(set:toArray()) do
 		local entry, uid = M.entryOf(s, vehicle)
-		if entry then
+		if entry and (full or entry.wg) then
 			local reason = nil
 			if entry.wg then
 				reason = adoptOld(uid, entry, vehicle)
@@ -246,10 +248,27 @@ end
 
 local function everyHour()
 	local changed = checkExpiry()
-	if scanLoaded() then changed = true end
+	if scanLoaded(true) then changed = true end
 	if changed then transmit() end
 end
 Events.EveryHours.Add(everyHour)
+
+-- An imported claim names the owner from VehicleClaimWG's saved list, which
+-- could be stale; the car is the truth. Compared as soon as the car is loaded,
+-- not at the next game hour: until then its real owner was locked out
+-- (2026-11-07, NikaiTin, three real minutes). Nothing to do once every
+-- imported claim has been compared.
+local function hasUnchecked()
+	for _, entry in pairs(state().cars) do
+		if entry.wg then return true end
+	end
+	return false
+end
+
+local function everyMinute()
+	if hasUnchecked() and scanLoaded(false) then transmit() end
+end
+Events.EveryOneMinute.Add(everyMinute)
 
 -- ---------------------------------------------------------------------------
 -- Import from VehicleClaimWG (once). Its global ModData stays in the save
@@ -338,7 +357,16 @@ function Commands.claim(player, args)
 	end
 	local s = state()
 	local username = player:getUsername()
-	local existing = M.entryOf(s, vehicle)
+	local existing, oldUid = M.entryOf(s, vehicle)
+	if existing and existing.wg then
+		local reason = adoptOld(oldUid, existing, vehicle)
+		if reason then
+			log("Released " .. describe(oldUid, existing) .. ": " .. reason)
+			s.cars[oldUid] = nil
+			existing = nil
+		end
+		transmit()
+	end
 	if existing then
 		notify(player, "IGUI_DelCarClaim_AlreadyClaimed")
 		return

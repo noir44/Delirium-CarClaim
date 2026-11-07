@@ -14,7 +14,7 @@ local M = DelCarClaim
 -- The claim that keeps this player out of this vehicle, or nil.
 local function lockOf(vehicle, player)
 	if not vehicle or not player then return nil end
-	local entry = M.entryOf(M.getState(), vehicle)
+	local entry = M.liveEntry(M.getState(), vehicle)
 	if entry and not M.canUse(entry, player) then return entry end
 	return nil
 end

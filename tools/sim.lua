@@ -75,7 +75,7 @@ md.DelEcon_State = { nextId = 2, houses = {}, halls = { ["1"] = { name = "Garage
 -- What VehicleClaimWG left in the save: three claims of "old" and one of
 -- "old2" that was about to be dropped (pending).
 md.VehicleClaimWG_List = { old = { ["WG-1-1"] = { x = 5, y = 5, z = 0, name = "CarA" }, ["WG-2-2"] = { x = 6, y = 6, z = 0, name = "CarB" },
-	["WG-3-3"] = { x = 7, y = 7, z = 0, name = "CarC" } }, old2 = { ["WG-4-4"] = { x = 8, y = 8, z = 0, name = "CarD" } } }
+	["WG-3-3"] = { x = 7, y = 7, z = 0, name = "CarC" }, ["WG-5-5"] = { x = 50, y = 50, z = 0, name = "CarE" } }, old2 = { ["WG-4-4"] = { x = 8, y = 8, z = 0, name = "CarD" } } }
 md.VehicleClaimWG_PendingUnclaims = { ["WG-4-4"] = true }
 
 dofile(ROOT .. "server/DCC_Server.lua")
@@ -100,10 +100,10 @@ SandboxVars = { DelCarClaim = { MaxCars = 2, OrgMaxCars = 1, InactivityDays = 14
 -- Import
 -- ---------------------------------------------------------------------------
 
-check(count() == 3, "import: 3 claims taken over, the pending one skipped")
+check(count() == 4, "import: 4 claims taken over, the pending one skipped")
 check(S.cars["WG-1-1"].owner == "old" and S.cars["WG-1-1"].wg, "import: owner kept, marked as not yet seen")
 for _, f in ipairs(handlers.OnInitGlobalModData) do f() end
-check(count() == 3, "import runs once")
+check(count() == 4, "import runs once")
 
 -- Cars seen: WG-1-1 free on the car (dropped), WG-2-2 with another owner and
 -- an access list, WG-3-3 burnt.
@@ -112,11 +112,24 @@ loaded = {
 	car(102, "CarB", 9, 9, { WG_ID = "WG-2-2", WG_Claim_Owner = "real", allowed = { "pal" } }),
 	car(103, "CarC_Burnt", 7, 7, { WG_ID = "WG-3-3", WG_Claim_Owner = "old" }),
 }
-hour()
-check(S.cars["WG-1-1"] == nil, "adopt: free on the car -> released")
+local view = DelCarClaim.liveEntry(S, loaded[2])
+check(view and view.owner == "real" and view.allowed.pal and S.cars["WG-2-2"].owner == "old",
+	"live view: owner and access from the car before the server compares, state untouched")
+check(DelCarClaim.liveEntry(S, loaded[1]) == nil, "live view: free on the car -> free")
+minute()
+check(S.cars["WG-1-1"] == nil, "adopt within a game minute: free on the car -> released")
 check(S.cars["WG-2-2"] and S.cars["WG-2-2"].owner == "real" and S.cars["WG-2-2"].allowed.pal, "adopt: owner and access list from the car")
 check(S.cars["WG-2-2"].wg == nil and S.cars["WG-2-2"].x == 9, "adopt: done once, position updated")
 check(S.cars["WG-3-3"] == nil, "wreck released")
+
+-- Not loaded yet, then claimed by someone else: free on the car, so the
+-- claim goes through without waiting for a scan.
+check(S.cars["WG-5-5"].wg, "unloaded import stays unchecked")
+local e5 = car(105, "CarE", 50, 50, { WG_ID = "WG-5-5" })
+cmd(player("newbie", false, 50, 50), "claim", { vehicle = 105 })
+check(S.cars["WG-5-5"] and S.cars["WG-5-5"].owner == "newbie" and not S.cars["WG-5-5"].wg,
+	"claim of an import free on the car: adopted first, then claimed")
+S.cars["WG-5-5"] = nil
 
 -- ---------------------------------------------------------------------------
 -- Claims and limits
