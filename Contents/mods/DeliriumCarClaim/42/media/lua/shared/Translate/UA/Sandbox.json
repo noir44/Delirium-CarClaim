@@ -1,0 +1,9 @@
+{
+	"Sandbox_DelCarClaim": "Delirium CarClaim",
+	"Sandbox_DelCarClaim_MaxCars": "Особистих машин на гравця",
+	"Sandbox_DelCarClaim_MaxCars_tooltip": "Скільки машин гравець може приватизувати на себе. Машини організацій сюди не входять.",
+	"Sandbox_DelCarClaim_OrgMaxCars": "Машин на організацію",
+	"Sandbox_DelCarClaim_OrgMaxCars_tooltip": "Скільки машин голова організації (Delirium Economy) може приватизувати на неї. Користуватися ними можуть голова та співробітники.",
+	"Sandbox_DelCarClaim_InactivityDays": "Днів без входу",
+	"Sandbox_DelCarClaim_InactivityDays_tooltip": "Особистий приват знімається, якщо власник не заходив на сервер стільки реальних днів; приват організації — якщо не заходили ні голова, ні співробітники. Їздити машиною не потрібно. 0 — привати не знімаються."
+}

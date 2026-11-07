@@ -1,0 +1,5 @@
+version=1
+title=Delirium CarClaim
+description=Vehicle claims: personal and organization cars, access lists, claim lasts while the owner logs in. Requires Delirium Economy. Build 42.
+tags=Build 42
+visibility=public

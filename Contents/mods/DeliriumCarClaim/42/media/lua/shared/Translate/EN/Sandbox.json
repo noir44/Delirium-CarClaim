@@ -1,0 +1,9 @@
+{
+	"Sandbox_DelCarClaim": "Delirium CarClaim",
+	"Sandbox_DelCarClaim_MaxCars": "Personal vehicles per player",
+	"Sandbox_DelCarClaim_MaxCars_tooltip": "How many vehicles one player can claim for themselves. Organization vehicles do not count.",
+	"Sandbox_DelCarClaim_OrgMaxCars": "Vehicles per organization",
+	"Sandbox_DelCarClaim_OrgMaxCars_tooltip": "How many vehicles the head of an organization (Delirium Economy) can claim for it. Its head and staff can use them.",
+	"Sandbox_DelCarClaim_InactivityDays": "Days without logging in",
+	"Sandbox_DelCarClaim_InactivityDays_tooltip": "A personal claim ends when its owner has not logged in for this many real days; an organization claim, when neither its head nor any of its staff has. Using the vehicle does not matter. 0: claims never end."
+}

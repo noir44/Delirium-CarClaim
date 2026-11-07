@@ -1,0 +1,7 @@
+name=Delirium CarClaim
+poster=poster.png
+id=DelCarClaim
+require=\DelEcon
+description=Vehicle claims for the Delirium server. A player claims up to MaxCars cars, the head of an organization (Delirium Economy) claims up to OrgMaxCars for it; claimed cars are locked to everyone but the owner, their access list, admins and the organization staff. A claim lasts as long as its owner (or anyone of the organization) logs in, like a safehouse - no driving needed. Takes over VehicleClaimWG claims.
+tags=Build 42
+versionMin=42.13
