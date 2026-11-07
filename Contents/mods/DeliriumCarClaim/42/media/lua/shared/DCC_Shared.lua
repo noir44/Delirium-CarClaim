@@ -130,6 +130,14 @@ function M.canManage(entry, player)
 	return entry.owner ~= nil and entry.owner == player:getUsername()
 end
 
+-- May give and remove access: whoever manages the car, and for an
+-- organization's car also its staff (to give a lift, to hand it in for repair).
+function M.canEditAccess(entry, player)
+	if M.canManage(entry, player) then return true end
+	if not entry or not entry.hall or not player then return false end
+	return DelEcon.isStaffOf(M.hallOf(entry), player)
+end
+
 -- Organizations this player may claim cars for: ids in creation order.
 function M.claimableHalls(player)
 	local out = {}

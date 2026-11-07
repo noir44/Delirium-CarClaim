@@ -221,6 +221,8 @@ local function addClaimedOptions(player, context, uid, entry)
 	local menu = addSubMenu(context, M.whoText(entry))
 	if M.canManage(entry, player) then
 		menu:addOption(getText("IGUI_DelCarClaim_Release"), player, M.confirmRelease, uid, entry)
+	end
+	if M.canEditAccess(entry, player) then
 		menu:addOption(getText("IGUI_DelCarClaim_Allow"), player, M.promptAllow, uid)
 		M.fillDenyMenu(addSubMenu(menu, getText("IGUI_DelCarClaim_Deny")), player, uid, entry)
 	else

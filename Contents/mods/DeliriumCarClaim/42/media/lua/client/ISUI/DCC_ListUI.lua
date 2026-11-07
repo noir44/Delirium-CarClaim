@@ -185,10 +185,18 @@ end
 function DelCarClaimListUI:render()
 	ISCollapsableWindow.render(self)
 	local uid, entry = self:selectedRow()
+	-- Staff of an organization edit the access list but do not release.
 	local manage = entry ~= nil and M.canManage(entry, self.player)
-	self.releaseBtn:setVisible(manage)
-	self.allowBtn:setVisible(manage)
-	self.denyBtn:setVisible(manage)
+	local access = entry ~= nil and M.canEditAccess(entry, self.player)
+	local bx = PAD
+	for _, item in ipairs({ { self.releaseBtn, manage }, { self.allowBtn, access }, { self.denyBtn, access } }) do
+		local button, visible = item[1], item[2]
+		button:setVisible(visible)
+		if visible then
+			button:setX(bx)
+			bx = bx + button.width + PAD
+		end
+	end
 
 	local hy = self:titleBarHeight() + PAD + (ROW_HGT - FONT_HGT_SMALL) / 2
 	local x = self.list.x + 4

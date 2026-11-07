@@ -398,7 +398,7 @@ end
 
 function Commands.allow(player, args)
 	local entry, uid = entryFromArgs(args)
-	if not entry or not M.canManage(entry, player) then return end
+	if not entry or not M.canEditAccess(entry, player) then return end
 	local name = M.trim(args.name)
 	if name == "" then return end
 	if M.isAllowed(entry, name) then
@@ -418,7 +418,7 @@ end
 
 function Commands.deny(player, args)
 	local entry, uid = entryFromArgs(args)
-	if not entry or not M.canManage(entry, player) then return end
+	if not entry or not M.canEditAccess(entry, player) then return end
 	local name = M.trim(args.name)
 	if not M.isAllowed(entry, name) then return end
 	entry.allowed[name] = nil
