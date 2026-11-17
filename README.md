@@ -9,6 +9,8 @@ Build 42 mod for the Delirium server: vehicle claims. Requires **Delirium Econom
 - **Lists.** *My vehicles* (world context menu, for those who have some), the *Vehicles* button in the organization window (head, staff, admins), and *All vehicle claims* for admins with days offline per claim. Access and the claim itself can be changed from the list without walking to the vehicle.
 - **Taking over VehicleClaimWG.** On the first start the claims VehicleClaimWG saved are imported (those it was about to drop are skipped). As soon as a vehicle is loaded, the owner and access list stored on it by VehicleClaimWG win. Everybody's timer starts at the import.
 
+- **Bought vehicles.** Delirium CarTitle claims a vehicle taken from a title for its buyer through `DelCarClaim.claimFor(player, vehicle)` (server side, same checks and limit as the menu).
+
 Everything is done by the server: the claims are one global ModData table (`DelCarClaim_State`), the vehicle only carries its id (`DCC_ID`, or `WG_ID` from VehicleClaimWG). The server log and `Logs/<date>_DelCarClaim.txt` record every claim, release (with the reason), access change and window smashed on a claimed vehicle by someone without access.
 
 ## Sandbox options (page DelCarClaim)
