@@ -411,15 +411,6 @@ function Commands.claim(player, args)
 	end
 end
 
--- For other mods on the server: a personal claim for this player, exactly
--- as if they had picked it in the menu (distance, wreck, limit - the player
--- gets the same notes). Delirium CarTitle claims a car bought from a shop
--- for its buyer this way.
-function M.claimFor(player, vehicle)
-	if not player or not vehicle then return end
-	Commands.claim(player, { vehicle = vehicle:getId() })
-end
-
 function Commands.release(player, args)
 	local entry, uid = entryFromArgs(args)
 	if not entry then
