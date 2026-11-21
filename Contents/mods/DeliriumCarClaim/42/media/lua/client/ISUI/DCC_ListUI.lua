@@ -22,10 +22,26 @@ local FONT_HGT_SMALL = getTextManager():getFontHeight(UIFont.Small)
 local PAD = 10
 local ROW_HGT = FONT_HGT_SMALL + 8
 local BUTTON_HGT = FONT_HGT_SMALL + 6
-local WIDTH = 640
-local HEIGHT = 420
+local WIDTH = 760
+-- Two lines under the list describe the selected car in full: the columns
+-- cut long names.
+local DETAIL_LINES = 2
+local HEIGHT = 420 + ROW_HGT * DETAIL_LINES
 
-local COL = { car = 0, owner = 190, where = 350, access = 450, offline = 530 }
+local COL = { car = 0, owner = 300, where = 470, access = 570, offline = 650 }
+
+-- Cut text to a width in pixels, with "..." when it does not fit.
+local function fit(text, width)
+	text = tostring(text)
+	local tm = getTextManager()
+	if tm:MeasureStringX(UIFont.Small, text) <= width then return text end
+	local dots = "..."
+	local n = #text
+	while n > 0 and tm:MeasureStringX(UIFont.Small, string.sub(text, 1, n) .. dots) > width do
+		n = n - 1
+	end
+	return string.sub(text, 1, n) .. dots
+end
 
 function DelCarClaimListUI.open(player, mode, hallId)
 	if DelCarClaimListUI.instance then DelCarClaimListUI.instance:close() end
@@ -59,8 +75,8 @@ local function drawRow(list, y, item, alt)
 	end
 	list:drawRectBorder(0, y, list:getWidth(), h - 1, 0.3, 0.4, 0.4, 0.4)
 	local ty = y + (h - FONT_HGT_SMALL) / 2
-	list:drawText(DelShops.trimString(M.carName(entry), 26), COL.car + 4, ty, 1, 1, 1, 1, UIFont.Small)
-	list:drawText(DelShops.trimString(M.whoShort(entry), 22), COL.owner + 4, ty, 1, 1, 1, 1, UIFont.Small)
+	list:drawText(fit(M.carName(entry), COL.owner - COL.car - 10), COL.car + 4, ty, 1, 1, 1, 1, UIFont.Small)
+	list:drawText(fit(M.whoShort(entry), COL.where - COL.owner - 10), COL.owner + 4, ty, 1, 1, 1, 1, UIFont.Small)
 	local where = "?"
 	if entry.x and entry.y then where = tostring(entry.x) .. ", " .. tostring(entry.y) end
 	list:drawText(where, COL.where + 4, ty, 1, 1, 1, 1, UIFont.Small)
@@ -92,7 +108,7 @@ end
 function DelCarClaimListUI:createChildren()
 	ISCollapsableWindow.createChildren(self)
 	local top = self:titleBarHeight() + PAD + ROW_HGT
-	local bottom = self.height - PAD - ROW_HGT * 2 - BUTTON_HGT - PAD
+	local bottom = self.height - PAD - ROW_HGT * 2 - BUTTON_HGT - PAD - ROW_HGT * DETAIL_LINES
 	self.list = ISScrollingListBox:new(PAD, top, self.width - PAD * 2, bottom - top)
 	self.list:initialise()
 	self.list:instantiate()
@@ -104,7 +120,7 @@ function DelCarClaimListUI:createChildren()
 	self.list.carUI = self
 	self:addChild(self.list)
 
-	local y = self.list:getBottom() + PAD
+	local y = self.list:getBottom() + PAD + ROW_HGT * DETAIL_LINES
 	self.releaseBtn = self:addButton(getText("IGUI_DelCarClaim_Release"), DelCarClaimListUI.onRelease)
 	self.allowBtn = self:addButton(getText("IGUI_DelCarClaim_Allow"), DelCarClaimListUI.onAllow)
 	self.denyBtn = self:addButton(getText("IGUI_DelCarClaim_Deny"), DelCarClaimListUI.onDeny)
@@ -208,10 +224,34 @@ function DelCarClaimListUI:render()
 		self:drawText(getText("IGUI_DelCarClaim_ColOffline"), x + COL.offline, hy, 0.8, 0.8, 0.8, 1, UIFont.Small)
 	end
 
+	self:drawDetails(entry)
+
 	local summary, hint = self:footer()
 	local fy = self.height - PAD - ROW_HGT * 2 + (ROW_HGT - FONT_HGT_SMALL) / 2
 	self:drawText(summary, PAD, fy, 1, 1, 1, 1, UIFont.Small)
 	self:drawText(hint, PAD, fy + ROW_HGT, 0.6, 0.6, 0.6, 1, UIFont.Small)
+end
+
+-- The selected car in full under the list: name with its script name (tells
+-- apart cars with the same name, and modded ones without a translation), then
+-- owner, place and everyone with access.
+function DelCarClaimListUI:drawDetails(entry)
+	if not entry then return end
+	local width = self.width - PAD * 2
+	local y = self.list:getBottom() + PAD / 2 + (ROW_HGT - FONT_HGT_SMALL) / 2
+	local name = M.carName(entry)
+	if entry.name and entry.name ~= "" and entry.name ~= "?" and entry.name ~= name then
+		name = name .. " (" .. entry.name .. ")"
+	end
+	self:drawText(fit(name, width), PAD, y, 1, 1, 0.7, 1, UIFont.Small)
+
+	local where = "?"
+	if entry.x and entry.y then where = tostring(entry.x) .. ", " .. tostring(entry.y) end
+	local names = M.allowedList(entry)
+	local access = #names > 0 and table.concat(names, ", ") or "-"
+	local line = M.whoText(entry) .. "   " .. getText("IGUI_DelCarClaim_ColWhere") .. ": " .. where
+		.. "   " .. getText("IGUI_DelCarClaim_ColAccess") .. ": " .. access
+	self:drawText(fit(line, width), PAD, y + ROW_HGT, 0.85, 0.85, 0.85, 1, UIFont.Small)
 end
 
 function DelCarClaimListUI:onRelease()
